@@ -5,6 +5,8 @@ import pandas as pd
 from scipy.spatial.distance import cdist
 import numpy as np
 import config
+import time;
+start = time.time()
 
 #BEFORE RUNNINF FOR THE FIRST TIME RUN THIS IN THE TERMINAL:
 #pip install geopandas matplotlib adjustText pandas scipy numpy
@@ -47,6 +49,19 @@ for UnCode in dfEurop["UN M49 Code"]:
 fig, ax = plt.subplots(figsize=(15, 8))
 countries.plot(ax=ax, color=countries["color"], edgecolor=secondaryColor)
 
+TONNES_PER_RING = 100000
+SIZE_PER_RING = 4
+cmap = plt.cm.Blues
+
+for UnCode, tonnes in zip(dfRecyceling["UN M49 Code"], dfRecyceling["POM (tonnes)"]):
+    row = dfLatLong[dfLatLong["UN_A3"] == UnCode]
+    if not row.empty:
+        lon = row["lon"].values[0]
+        lat = row["lat"].values[0]
+        print(tonnes/TONNES_PER_RING)
+        for i in range((int)(tonnes/TONNES_PER_RING), 0, -1):
+            ax.plot(lon, lat, "o", color=cmap(1-i/(tonnes/TONNES_PER_RING)), markersize=i * SIZE_PER_RING, markeredgewidth=0)
+
 points = []
 for Country, UnCode, RecyclingRate in zip(dfRecyceling["Country"], dfRecyceling["UN M49 Code"], dfRecyceling["Recycled Rate"]):
     if(Country != "Europe"):
@@ -68,9 +83,7 @@ if len(points) > 0:
 
     texts = []
     for i, (lon, lat, label) in enumerate(points):
-        nearby = np.sum(distances[i] < distance) - 1
-        fontsize = max(minFontsize, maxFontsize - nearby)
-        ax.plot(lon, lat, "o", color=secondaryColor, markersize=3)
+        fontsize = 8
         texts.append(ax.text(lon, lat, label, fontsize=fontsize,
             bbox=dict(boxstyle="round,pad=0.3,rounding_size=0.5", facecolor="white", edgecolor= primaryColor, linewidth=0.8)))
 
@@ -84,3 +97,5 @@ if len(points) > 0:
 ax.axis("off")
 plt.savefig("map.png", dpi=300)
 print("Saved map.png!")
+end = time.time()
+print(f"it took {end-start} seconds")

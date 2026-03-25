@@ -7,11 +7,12 @@ primaryColor = "lightblue"
 secondaryColor = "gray"
 textColor = "black"
 noDataColor = "white"
-fontSize = 20
+fontSize = 13
 
 dataPath = "/workspaces/alumanimMapUsingGeopanda/data/Aluminium Can Recycling.csv"
 latLongPath = "/workspaces/alumanimMapUsingGeopanda/data/countries_latlon.csv"
 europPath = "/workspaces/alumanimMapUsingGeopanda/data/Aluminium Can Recycling Europe.csv"
+mapName = "test"
 
 dfWorld = pd.read_csv(dataPath)
 dfLatLong = pd.read_csv(latLongPath).set_index("UN_A3")
@@ -63,8 +64,8 @@ if points:
     adjust_text(texts,
             expand_text=(fontSize * 6, fontSize * 6),
             expand_points=(fontSize * 6, fontSize * 6),
-            force_text=(fontSize * 2, fontSize * 2),
-            force_points=(fontSize * 2, fontSize * 2),
+            force_text=(fontSize * 0.5, fontSize * 0.5),
+            force_points=(fontSize * 0.5, fontSize * 0.5),
             max_move=10,
             iterations=10000)
 
@@ -73,5 +74,5 @@ if points:
         ax.plot([lon, label_x], [lat, label_y], color=secondaryColor, lw=0.8)
 
 ax.axis("off")
-plt.savefig("test.png", dpi=300)
-print("Saved test.png!")
+plt.savefig(f"{mapName}.png", dpi=300)
+print(f"Saved {mapName}.png!")

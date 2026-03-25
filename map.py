@@ -1,5 +1,6 @@
 import geopandas as gpd
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 from adjustText import adjust_text
 import pandas as pd
 
@@ -8,6 +9,11 @@ secondaryColor = "gray"
 textColor = "black"
 noDataColor = "white"
 fontSize = 13
+
+useGradient = True  # False = flat blue, True = green-to-red gradient
+
+gradientMin = 0.20
+gradientMax = 0.90
 
 dataPath = "/workspaces/alumanimMapUsingGeopanda/data/Aluminium Can Recycling.csv"
 latLongPath = "/workspaces/alumanimMapUsingGeopanda/data/countries_latlon.csv"
@@ -18,19 +24,39 @@ dfWorld = pd.read_csv(dataPath)
 dfLatLong = pd.read_csv(latLongPath).set_index("UN_A3")
 dfEurop = pd.read_csv(europPath)
 
-worldTitles = dfWorld.columns.to_list()
+def parseRate(value):
+    return float(str(value).strip().replace('%', '')) / 100
+
+nameMap = {
+    "Turkiye":       "Turkey",
+    "United States": "United States of America",
+}
+
+def resolveCountry(name):
+    return nameMap.get(name, name)
 
 countries = gpd.read_file("ne_110m_admin_0_countries.shp")
 countries["color"] = noDataColor
 
-# color europe countries
+mapWith = 40
+mapDepht = 20
+
+cmap = plt.cm.RdYlGn
+norm = mcolors.Normalize(vmin=gradientMin, vmax=gradientMax)
+
+# Color Europe countries
 for row in dfEurop.itertuples():
-    country = row[2]
+    country = resolveCountry(row[2])
+    rate    = parseRate(row[3])
+
     match = countries[countries["NAME"] == country]
     if match.empty:
         print(f"No match found for: {country}")
     else:
-        countries.loc[countries["NAME"] == country, "color"] = primaryColor
+        color = mcolors.to_hex(cmap(norm(rate))) if useGradient else primaryColor
+        countries.loc[countries["NAME"] == country, "color"] = color
+
+skipCountries = {"World", "Europe"}
 
 points = []
 for row in dfWorld.itertuples():
@@ -38,21 +64,32 @@ for row in dfWorld.itertuples():
     country = row[2]
     unCode  = row[3]
     pom     = row[4]
-    rate    = row[5]
+    rate    = parseRate(row[5])
+
+    if country in skipCountries:
+        continue
+
+    resolvedCountry = resolveCountry(country)
 
     if unCode in dfLatLong.index:
         latLongRow = dfLatLong.loc[unCode]
         lat = latLongRow["lat"]
         lon = latLongRow["lon"]
-        match = countries[countries["NAME"] == country]
+        match = countries[countries["NAME"] == resolvedCountry]
         if match.empty:
-            print(f"No match found for: {country}")
+            print(f"No match found for: {resolvedCountry}")
         else:
-            countries.loc[countries["NAME"] == country, "color"] = primaryColor
-        points.append((lon, lat, f"{country}: {rate}"))
+            color = mcolors.to_hex(cmap(norm(rate))) if useGradient else primaryColor
+            countries.loc[countries["NAME"] == resolvedCountry, "color"] = color
+        points.append((lon, lat, f"{country}: {rate:.0%}"))
 
-fig, ax = plt.subplots(figsize=(40, 20))
+fig, ax = plt.subplots(figsize=(mapWith, mapDepht))
 countries.plot(ax=ax, color=countries["color"], edgecolor=secondaryColor)
+
+if useGradient:
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+    sm.set_array([])
+    plt.colorbar(sm, ax=ax, orientation="horizontal", fraction=0.03, pad=0.02, label="Recycling Rate (%)")
 
 if points:
     texts = []
@@ -61,13 +98,21 @@ if points:
             bbox=dict(boxstyle="round,pad=0.3,rounding_size=0.5",
                       facecolor="white", edgecolor=primaryColor, linewidth=0.8)))
 
+    # use all country centroids as obstacles to push labels away from land
+    centroids = countries.geometry.centroid
+    obs_x = centroids.x.tolist()
+    obs_y = centroids.y.tolist()
+
     adjust_text(texts,
-            expand_text=(fontSize * 6, fontSize * 6),
-            expand_points=(fontSize * 6, fontSize * 6),
-            force_text=(fontSize * 0.5, fontSize * 0.5),
-            force_points=(fontSize * 0.5, fontSize * 0.5),
-            max_move=10,
-            iterations=10000)
+        x=obs_x,
+        y=obs_y,
+        expand_text=(fontSize * 6, fontSize * 6),
+        expand_points=(fontSize * 6, fontSize * 6),
+        force_text=(fontSize * 0.5, fontSize * 0.5),
+        force_points=(fontSize * 1.5, fontSize * 1.5),
+        avoid_self=True,
+        max_move=50,
+        iterations=10000)
 
     for text, (lon, lat, label) in zip(texts, points):
         label_x, label_y = text.get_position()

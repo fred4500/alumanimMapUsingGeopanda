@@ -8,7 +8,7 @@ primaryColor = "lightblue"
 secondaryColor = "gray"
 textColor = "black"
 noDataColor = "white"
-fontSize = 13
+fontSize = 20
 
 useGradient = True  # False = flat blue, True = green-to-red gradient
 
@@ -56,7 +56,7 @@ for row in dfEurop.itertuples():
         color = mcolors.to_hex(cmap(norm(rate))) if useGradient else primaryColor
         countries.loc[countries["NAME"] == country, "color"] = color
 
-skipCountries = {"World", "Europe"}
+skipCountries = {"World"}
 
 points = []
 for row in dfWorld.itertuples():
@@ -81,7 +81,10 @@ for row in dfWorld.itertuples():
         else:
             color = mcolors.to_hex(cmap(norm(rate))) if useGradient else primaryColor
             countries.loc[countries["NAME"] == resolvedCountry, "color"] = color
-        points.append((lon, lat, f"{country}: {rate:.0%}"))
+        if(int(unCode) == 784):
+            points.append((lon, lat, f"UAE: {rate:.0%}"))
+        else:
+            points.append((lon, lat, f"{country}: {rate:.0%}"))
 
 fig, ax = plt.subplots(figsize=(mapWith, mapDepht))
 countries.plot(ax=ax, color=countries["color"], edgecolor=secondaryColor)

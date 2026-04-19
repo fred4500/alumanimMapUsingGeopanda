@@ -35,9 +35,9 @@ norm = mcolors.Normalize(vmin=HEATMAP_MIN, vmax=HEATMAP_MAX)
 # --- Color Europe countries ---
 for row in dfEurop.itertuples():
     country = resolveCountry(row[2])
-    rate    = parseRate(row[3])
  
     match = countries[countries["NAME"] == country]
+    rate = parseRate(dfWorld[dfWorld.iloc[:, 1] == 'Europe'].iloc[:, 4].values[0])
     if match.empty:
         print(f"No match found for: {country}")
     else:
@@ -53,7 +53,6 @@ ring_artists = []
  
 # --- Color world countries and collect label points ---
 for row in dfWorld.itertuples():
-    year    = row[1]
     country = row[2]
     unCode  = row[3]
     pom     = row[4]
@@ -88,8 +87,9 @@ for row in dfWorld.itertuples():
                         circle, = ax.plot(lon, lat, marker='o', color=ringCmap(1 - ring / 5), markersize=ringSize)
                         ring_artists.append(circle)
                     ringSize -= STEP_DOWN_PER_RING
-                circle, = ax.plot(lon, lat, marker='o', color=RING_ZERRO_POM_COLOR, markersize=ringSize)
+                circle, = ax.plot(lon, lat, marker='o', color=RING_ZERRO_POM_COLOR, markersize=RING_ZERRO_POM_SIZE)
                 ring_artists.append(circle)
+
 
  
 # --- Plot countries ---

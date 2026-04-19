@@ -50,7 +50,7 @@ USE_RINGS = True        # True = draw rings; False = skip ring rendering entirel
 MAX_RING_SIZE = 40           # Marker size (points) of the outermost/largest ring
 STEP_DOWN_PER_RING = 8          # Size reduction per inner ring (= MAX_RING_SIZE / number of tiers)
                                 # e.g. 5 tiers → 40, 32, 24, 16, 8
-RING_ZERRO_POM_SIZE = 2 # size of the ring each country gets
+RING_ZERRO_POM_SIZE = 4 # size of the ring each country gets
 
 # Matplotlib colormap used to color each ring by tier index.
 # Rings are drawn from outermost (darkest) to innermost (lightest) using
@@ -61,4 +61,4 @@ RING_ZERRO_POM_COLOR = SECONDARY_COLOR # Color of the ring each country gets
 
 # --- Output ---
 MAP_OUTPUT_NAME = "heat"        # Saved as {MAP_OUTPUT_NAME}.png
-MAP_DPI         = 1000          # Resolution of the output image
+MAP_DPI         = 300          # Resolution of the output image

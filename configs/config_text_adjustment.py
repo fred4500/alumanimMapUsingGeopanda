@@ -75,5 +75,5 @@ PRECISION = 0.1
 #   784:       (-3, -2)  # match by UN code (UAE) — shift 3° left, 2° down
 MANUAL_ADJUSTMENTS = {
     # "Germany": (2, 1),
-    # 784:       (-3, -2),
+    784:       (-100, -100),
 }
